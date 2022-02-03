@@ -1,0 +1,25 @@
+kultoo@control:~/ansible_test$ ansible-playbook --list-tags site.yml
+
+playbook: site.yml
+
+  play #1 (all): all	TAGS: []
+      TASK TAGS: [always]
+
+  play #2 (web_servers): web_servers	TAGS: []
+      TASK TAGS: [apache, apache2, centos, httpd, ubuntu]
+
+  play #3 (db_servers): db_servers	TAGS: []
+      TASK TAGS: [centos, db, mariadb, ubuntu]
+
+  play #4 (file_servers): file_servers	TAGS: []
+      TASK TAGS: [samba]
+kultoo@control:~/ansible_test$ 
+
+
+
+ansible-playbook --tags centos --ask-become-pass site.yml
+
+
+kultoo@control:~/ansible_test$ ansible-playbook --tags "apache,db" --ask-become-pass site.yml
+
+

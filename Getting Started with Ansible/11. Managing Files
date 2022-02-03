@@ -1,3 +1,4 @@
+kultoo@control:~/ansible_test$ cat site.yml 
 ---
 
 - hosts: all
@@ -79,3 +80,22 @@
     package:
       name: samba
       state: latest
+kultoo@control:~/ansible_test$ 
+
+
+
+
+
+
+
+
+[kultoo@node4 ~]$ cat /var/www/
+cgi-bin/ html/    
+[kultoo@node4 ~]$ cat /var/www/html/index.html 
+<html>
+	<title>Website Test</title>
+	<body>
+		<p>Ansible Test</p>
+	</body>
+</html>
+[kultoo@node4 ~]$ 
