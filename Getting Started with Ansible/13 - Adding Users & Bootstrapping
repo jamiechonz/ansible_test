@@ -34,7 +34,7 @@
       user: jamie
       key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMZQgnyRpzP8vP/ZJq1PU3HnT4FPTiQWSrQNun6u7rir Real Ansible"
   
-  - name: add sudoers fir for jamie
+  - name: add sudoers for jamie
     tags: always
     copy: 
       src: sudoer_jamie
@@ -43,6 +43,48 @@
       group: root
       mode: 0440
       
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+- hosts: all
+  become: true
+  pre_tasks: 
+
+  - name: update repo cache (CentOS)
+    tags: always
+    dnf:
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "CentOS"
+  
+  - name: update repo cache (Ubuntu)
+    tags: always
+    apt:
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: add ssh key for jamie
+    tags: always
+    authorized_key:
+      user: jamie
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMZQgnyRpzP8vP/ZJq1PU3HnT4FPTiQWSrQNun6u7rir Real Ansible"
       
 - hosts: workstations
   become: true
@@ -145,24 +187,4 @@
     package:
       name: samba
       state: latest
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
