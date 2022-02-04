@@ -1,0 +1,263 @@
+
+ssh-keygen -t ed25519 -C "Test Ansible"
+ssh-copy-id -i ~/.ssh/id_ed25519.pub node1
+ssh-copy-id -i ~/.ssh/id_ed25519.pub node2
+ssh-copy-id -i ~/.ssh/id_ed25519.pub node3
+
+
+alias ssha='eval $(ssh-agent) && ssh-add'   
+ssha
+
+which git
+kultoo@control:~$ git clone git@github.com:jamiechonz/ansible_test.git
+kultoo@control:~/ansible_test$ git config --global user.name "jamiechonz"
+kultoo@control:~/ansible_test$ git config --global user.email "jamiechonz@gmail.com"
+kultoo@control:~/ansible_test$ git status
+kultoo@control:~/ansible_test$ git diff README.md
+kultoo@control:~/ansible_test$ git add README.md 
+kultoo@control:~/ansible_test$ git status
+kultoo@control:~/ansible_test$ git commit -m "updated readme file, initial commit"
+kultoo@control:~/ansible_test$ git push origin main
+
+avoid to install 2.5.1 (old version)
+make sure python is installed on all of them
+kultoo@control:~/ansible_test$ ansible all --key-file ~/.ssh/ansible -i inventory -m ping
+nano ansible.cfg 
+[defaults]
+inventory = inventory
+private_key_file = ~/.ssh/ansible
+ansible all -m ping 
+ansible all --list-hosts
+ansible all -m gather_facts
+ansible all -m apt
+ansible all -m apt -a update_cache=true
+ansible all -m apt -a update_cache=true --become --ask-become-pass
+ansible all -m apt -a name=vim-nox --become --ask-become-pass
+which vim
+apt search vim-nox
+
+
+log file to check change in node
+/var/log/apt
+history.log
+
+upgrade nodes
+ansible all -m apt -a name=snapd --become --ask-become-pass
+ansible all -m apt -a "name=rsync state=latest" --become --ask-become-pass
+ansible all -m apt -a "upgrade=dist" --become --ask-become-pass
+
+
+
+
+
+kultoo@control:~/ansible_test$ cat install_apache.yml 
+---
+
+- hosts: all
+  become: true
+  tasks: 
+
+  - name: install apache2 package
+    apt: 
+      name: apache2
+
+
+ansible-playbook --ask-become-pass install_apache.yml
+ansible --version | grep "python version"
+
+
+
+
+kultoo@control:~/ansible_test$ ansible-playbook --ask-become-pass install_apache.yml 
+BECOME password: 
+
+PLAY [all] **********************************************************************************************************
+
+TASK [Gathering Facts] **********************************************************************************************
+ok: [10.0.0.30]
+ok: [10.0.0.28]
+ok: [10.0.0.29]
+
+TASK [update repository index] **************************************************************************************
+changed: [10.0.0.30]
+changed: [10.0.0.28]
+changed: [10.0.0.29]
+
+TASK [install apache2 package] **************************************************************************************
+ok: [10.0.0.28]
+ok: [10.0.0.29]
+ok: [10.0.0.30]
+
+TASK [add php support for apache] ***********************************************************************************
+ok: [10.0.0.30]
+ok: [10.0.0.29]
+ok: [10.0.0.28]
+
+PLAY RECAP **********************************************************************************************************
+10.0.0.28                  : ok=4    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+10.0.0.29                  : ok=4    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+10.0.0.30                  : ok=4    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+kultoo@control:~/ansible_test$ cat install_apache.yml 
+---
+
+- hosts: all
+  become: true
+  tasks: 
+  
+  - name: update repository index
+    apt:
+      update_cache: yes  
+
+  - name: install apache2 package
+    apt: 
+      name: apache2
+      state: latest
+
+  - name: add php support for apache
+    apt:
+      name: libapache2-mod-php
+      state: latest
+kultoo@control:~/ansible_test$ 
+
+
+
+git add .
+git status
+
+
+kultoo@control:~/ansible_test$ ansible all -m gather_facts --limit 10.0.0.28 | grep ansible_distribution
+        "ansible_distribution": "Ubuntu",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "18",
+        "ansible_distribution_release": "bionic",
+        "ansible_distribution_version": "18.04",
+kultoo@control:~/ansible_test$ 
+
+
+
+
+
+kultoo@control:~/ansible_test$ cat install_apache.yml 
+---
+
+- hosts: all
+  become: true
+  tasks: 
+
+  - name: install apache2 and libapache2-mod-phppackage
+    apt: 
+      name: 
+        - apache2
+        - libapache2-mod-php
+      state: latest
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+kultoo@control:~/ansible_test$ 
+
+
+
+
+
+
+
+kultoo@control:~/ansible_test$ cat install_apache.yml 
+---
+
+- hosts: all
+  become: true
+  tasks: 
+
+  - name: install apache and php
+    apt: 
+      name: 
+        - "{{ apache_package }}"
+        - "{{ php_package }}"
+      state: latest
+      update_cache: yes
+
+
+kultoo@control:~/ansible_test$ cat inventory 
+10.0.0.28 apache_package=apache2 php_package=libapache2-mod-php
+10.0.0.29 apache_package=apache2 php_package=libapache2-mod-php
+10.0.0.30 apache_package=apache2 php_package=libapache2-mod-php
+
+
+
+
+centos
+[kultoo@node4 ~]$ sudo firewall-cmd --add-port=80/tcp
+success
+[kultoo@node4 ~]$ 
+
+
+
+
+Getting started with Ansible 09 - Targeting Specific Nodes
+
+
+kultoo@control:~/ansible_test$ cat site.yml 
+---
+
+- hosts: all
+  become: true
+  tasks: 
+
+  - name: install updates (CentOS)
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "CentOS"
+  
+  - name: install updates (Ubuntu)
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: web_servers
+  become: true
+  tasks:
+
+  - name: install apache and php for Ubuntu servers
+    apt: 
+      name: 
+        - apache2
+        - libapache2-mod-php
+      state: latest
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+  - name: install apache and php for CentOS servers
+    dnf:
+      name:
+        - httpd
+        - php
+      state: latest
+      update_cache: yes
+    when: ansible_distribution == "CentOS"
+
+kultoo@control:~/ansible_test$ 
+
+
+
+kultoo@control:~/ansible_test$ cat inventory 
+[web_servers]
+10.0.0.28 
+10.0.0.32
+
+[db_servers]
+10.0.0.29 
+
+[file_servers]
+10.0.0.30
+
+
+
+
+pre_tasks:
+
+
